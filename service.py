@@ -2,8 +2,6 @@ import hug
 
 from models.ExORepository import ExORepository
 
-rep = ExORepository()
-
 
 @hug.get('/status/{source_branch}')
 def status_list(source_branch: str):

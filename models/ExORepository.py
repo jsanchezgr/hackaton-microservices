@@ -7,11 +7,12 @@ BB_KEY = os.environ.get('BB_KEY', '')
 
 class ExORepository:
 
-    def load_repositories(self):
+    @staticmethod
+    def load_repositories():
         request_url = 'https://api.bitbucket.org/2.0/repositories/exolever/'
 
         # Main (non exo-XXXX) repositories
-        list = [
+        repository_list = [
             'exolever',
             'exolever-populator',
             'end-to-end-testing',
@@ -32,11 +33,11 @@ class ExORepository:
                 name = repo['full_name'].replace('exolever/', '')
 
                 if name.startswith('exo-'):
-                    list.append(name)
+                    repository_list.append(name)
 
             request_url = result.get('next', False)
 
-        return list
+        return repository_list
 
     def get_statuses(self, source_branch, repos=None):
 
@@ -51,26 +52,27 @@ class ExORepository:
             repos = full_list
 
         for repo in repos:
-            statuses.append({repo: self.__get_repository_status(repo, source_branch)})
+            statuses.append({
+                repo: self.__get_repository_status(repo, source_branch)})
 
         return statuses
 
-    def __get_repository_status(self, repo_slug, source_branch):
+    @staticmethod
+    def __get_repository_status(repo_slug, source_branch):
 
-        request_url = "https://api.bitbucket.org/2.0/repositories/exolever/%s/pipelines/?sort=-created_on" % (repo_slug)
+        request_url = 'https://api.bitbucket.org/2.0/repositories/' \
+                      'exolever/%s/pipelines/?sort=-created_on' % repo_slug
 
         r = requests.get(request_url, auth=(BB_USER, BB_KEY))
 
         result = r.json()
 
-        for value in result["values"]:
+        for value in result['values']:
 
-            target = value.get("target")
+            target = value.get('target')
 
-            if target.get("ref_name") == source_branch:
+            if target.get('ref_name') == source_branch:
 
-                type = value.get("state").get("type")
-
-                return type
+                return value.get('state').get('type')
 
         return False
